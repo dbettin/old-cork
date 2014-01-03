@@ -15,18 +15,9 @@ type Request struct {
 	nextHandler int
 }
 
-type RequestCreator interface {
-	NewRequest(*Route, *http.Request, *Response) *Request
-}
-
-type defaultRequestCreator struct{}
-
-func (rc *defaultRequestCreator) NewRequest(route *Route, req *http.Request, res *Response) *Request {
-	request := &Request{Request: req, Route: route,
-		Context: route.context, response: res, nextHandler: 0}
-	request.Params = make(map[string]string)
-	request.setupParams()
-	return request
+func (r *Request) SetRoute(route *Route) {
+	r.Route = route
+	r.setupParams()
 }
 
 func (r *Request) Next() {
@@ -45,4 +36,16 @@ func (r *Request) setupParams() {
 			r.Params[segment.Name] = segment.Value
 		}
 	}
+}
+
+type RequestCreator interface {
+	NewRequest(*http.Request, *Response) *Request
+}
+
+type defaultRequestCreator struct{}
+
+func (rc *defaultRequestCreator) NewRequest(req *http.Request, res *Response) *Request {
+	request := &Request{Request: req, response: res, nextHandler: 0}
+	request.Params = make(map[string]string)
+	return request
 }

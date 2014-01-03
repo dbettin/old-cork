@@ -29,22 +29,28 @@ func (r *stubRouter) Route(method string, url *url.URL) *Route {
 func (r *stubRouter) Configure(settings *Cork) {
 }
 
+var dt *defaultDispatcher
+
+func init() {
+	dt = &defaultDispatcher{}
+	dt.Configure(Pop())
+	dt.Router = new(stubRouter)
+}
+
 func Test404Dispatch(t *testing.T) {
-	d := &defaultDispatcher{Router: new(stubRouter)}
 	res := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/foobar", nil)
 
-	d.ServeHTTP(res, req)
+	dt.ServeHTTP(res, req)
 
 	expect(t, res.Code, 404)
 }
 
 func Test405Dispatch(t *testing.T) {
-	d := &defaultDispatcher{Router: new(stubRouter)}
 	res := httptest.NewRecorder()
 	req, _ := http.NewRequest("POST", "/foo", nil)
 
-	d.ServeHTTP(res, req)
+	dt.ServeHTTP(res, req)
 
 	expect(t, res.Code, 405)
 }

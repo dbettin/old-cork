@@ -60,11 +60,11 @@ func (d *defaultDispatcher) runHandlers(route *Route, request *Request) {
 
 func (d *defaultDispatcher) setupRequest(res http.ResponseWriter, req *http.Request) (*Response, *Request) {
 	response := d.NewResponse(res)
-	request := d.NewRequest(nil, req, response)
+	request := d.NewRequest(req, response)
 	return response, request
 }
 
 func (d *defaultDispatcher) setup(route *Route, request *Request) {
-	request.Route = route
+	request.SetRoute(route)
 	route.addHandler(route.Action)
 }

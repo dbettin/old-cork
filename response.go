@@ -26,6 +26,10 @@ func (rc *defaultResponseCreator) NewResponse(res http.ResponseWriter) *Response
 	return response
 }
 
+func (r *Response) Status(status int) {
+	r.WriteHeader(status)
+}
+
 func (r *Response) Send(payload interface{}) {
 	result, err := json.Marshal(payload)
 

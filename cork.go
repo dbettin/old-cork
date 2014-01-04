@@ -8,7 +8,7 @@ import (
 type Cork struct {
 	Routes   func(r Routes)
 	Services *Services
-	Error    ErrorHandler
+	Error    Handler
 
 	configured bool
 }

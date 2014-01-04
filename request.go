@@ -10,6 +10,7 @@ type Request struct {
 	Route   *Route
 	Context interface{}
 	Params  map[string]string
+	Error   *Error
 
 	response    *Response
 	nextHandler int

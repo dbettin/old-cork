@@ -1,6 +1,8 @@
 package cork
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 )
 
@@ -38,19 +40,33 @@ func (d *defaultDispatcher) dispatch(response *Response, request *Request) {
 			d.runHandlers(route, request)
 		} else {
 			// call 405 handler
-			response.WriteHeader(405)
+			response.Status(http.StatusMethodNotAllowed)
 		}
 	} else {
-		response.WriteHeader(404)
+		response.Status(http.StatusNotFound)
 	}
 
 }
 
 func (d *defaultDispatcher) handlePanic(response *Response, request *Request) {
-	if err := recover(); err != nil {
+	if r := recover(); r != nil {
 		// log error
-		// call error handler
+		var err error
+		if s, ok := r.(string); ok {
+			fmt.Println(s)
+			err = errors.New(s)
+		} else if e, ok := r.(error); ok {
+			err = e
+		} else {
+			err = errors.New("Unknown error")
+		}
 
+		if eh := d.settings.Error; eh != nil {
+			request.Error = NewError(err, http.StatusInternalServerError)
+			eh.Handle(response, request)
+		} else {
+			response.Status(http.StatusInternalServerError)
+		}
 	}
 }
 

@@ -8,6 +8,7 @@ import (
 
 type Response struct {
 	http.ResponseWriter
+	settings *Cork
 }
 
 type responseWriter struct {
@@ -15,13 +16,14 @@ type responseWriter struct {
 }
 
 type ResponseCreator interface {
-	NewResponse(http.ResponseWriter) *Response
+	NewResponse(http.ResponseWriter, *Cork) *Response
 }
 
 type defaultResponseCreator struct{}
 
-func (rc *defaultResponseCreator) NewResponse(res http.ResponseWriter) *Response {
+func (rc *defaultResponseCreator) NewResponse(res http.ResponseWriter, settings *Cork) *Response {
 	response := &Response{}
+	response.settings = settings
 	response.ResponseWriter = &responseWriter{ResponseWriter: res}
 	return response
 }
@@ -30,14 +32,22 @@ func (r *Response) Status(status int) {
 	r.WriteHeader(status)
 }
 
-func (r *Response) Send(payload interface{}) {
+func (r *Response) OK(payload interface{}) {
+	r.Send(http.StatusOK, payload)
+}
+
+func (r *Response) Error(status int, err error) {
+	if r.settings.Error != nil {
+	}
+
+}
+
+func (r *Response) Send(status int, payload interface{}) {
 	result, err := json.Marshal(payload)
-
 	if err != nil {
-		// to do - handle errors in global manner
-		fmt.Println("Error duing send")
-
+		r.Error(http.StatusInternalServerError, err)
 	} else {
+		r.Status(status)
 		r.Header().Set("Content-Type", "application/json")
 		r.Write(result)
 	}

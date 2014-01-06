@@ -51,6 +51,8 @@ func (d *defaultDispatcher) dispatch(response *Response, request *Request) {
 func (d *defaultDispatcher) handlePanic(response *Response, request *Request) {
 	if r := recover(); r != nil {
 		// log error
+		response.Status(http.StatusInternalServerError)
+
 		var err error
 		if s, ok := r.(string); ok {
 			fmt.Println(s)
@@ -64,8 +66,6 @@ func (d *defaultDispatcher) handlePanic(response *Response, request *Request) {
 		if eh := d.settings.Error; eh != nil {
 			request.Error = NewError(err, http.StatusInternalServerError)
 			eh.Handle(response, request)
-		} else {
-			response.Status(http.StatusInternalServerError)
 		}
 	}
 }
@@ -75,8 +75,8 @@ func (d *defaultDispatcher) runHandlers(route *Route, request *Request) {
 }
 
 func (d *defaultDispatcher) setupRequest(res http.ResponseWriter, req *http.Request) (*Response, *Request) {
-	response := d.NewResponse(res)
-	request := d.NewRequest(req, response)
+	response := d.NewResponse(res, d.settings)
+	request := d.NewRequest(req, response, d.settings)
 	return response, request
 }
 

@@ -13,6 +13,7 @@ type Request struct {
 	Error   *Error
 
 	response    *Response
+	settings    *Cork
 	nextHandler int
 }
 
@@ -40,13 +41,14 @@ func (r *Request) setupParams() {
 }
 
 type RequestCreator interface {
-	NewRequest(*http.Request, *Response) *Request
+	NewRequest(*http.Request, *Response, *Cork) *Request
 }
 
 type defaultRequestCreator struct{}
 
-func (rc *defaultRequestCreator) NewRequest(req *http.Request, res *Response) *Request {
+func (rc *defaultRequestCreator) NewRequest(req *http.Request, res *Response, settings *Cork) *Request {
 	request := &Request{Request: req, response: res, nextHandler: 0}
+	request.settings = settings
 	request.Params = make(map[string]string)
 	return request
 }

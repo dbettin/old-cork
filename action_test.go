@@ -30,7 +30,7 @@ func TestHandler(t *testing.T) {
 }
 
 func TestCorkHandlerFuncAction(t *testing.T) {
-	action := action.Create(func(*Response, *Request) {})
+	action := action.Create(func(*Message) {})
 	_, ok := action.(Handler)
 	expect(t, ok, true)
 }

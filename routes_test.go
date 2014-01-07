@@ -88,7 +88,7 @@ func TestAddContext(t *testing.T) {
 func TestAddHandler(t *testing.T) {
 	store.route = nil
 
-	hf := func(res *Response, req *Request) {}
+	hf := func(message *Message) {}
 
 	routes.Get("/foo", d).
 		HandleFunc(hf)

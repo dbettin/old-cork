@@ -9,7 +9,7 @@ import (
 
 type stubAction struct{}
 
-func (a *stubAction) Handle(res *Response, req *Request) {
+func (a *stubAction) Handle(message *Message) {
 }
 
 type stubRouter struct{}
@@ -45,9 +45,8 @@ func init() {
 }
 
 func TestPanicDispatchWithErrorHandler(t *testing.T) {
-	dt.settings.Error = HandlerFunc(func(res *Response, req *Request) {
-		res.Status(req.Error.Status)
-		res.Send(&testError{req.Error.Error()})
+	dt.settings.Error = HandlerFunc(func(message *Message) {
+		message.Reply(message.Error.Status, &testError{message.Error.Error()})
 	})
 
 	res := sendRequest("GET", "/panic")

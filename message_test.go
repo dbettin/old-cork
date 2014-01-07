@@ -5,11 +5,11 @@ import (
 	"testing"
 )
 
-var factory RequestCreator = &defaultRequestCreator{}
+var factory MessageCreator = &defaultMessageCreator{}
 
-func TestNewRequest(t *testing.T) {
+func TestNewMessage(t *testing.T) {
 	httpreq, _ := http.NewRequest("GET", "/foo", nil)
-	req := factory.NewRequest(httpreq, nil)
+	req := factory.NewMessage(httpreq, nil, nil)
 	refute(t, req, nil)
 	refute(t, req.Params, nil)
 	refute(t, req.Request, nil)
@@ -19,13 +19,13 @@ func TestRequestNext(t *testing.T) {
 	httpreq, _ := http.NewRequest("GET", "/foo", nil)
 	route := &Route{}
 	var counter int
-	hf := func(res *Response, req *Request) {
+	hf := func(message *Message) {
 		counter++
 	}
 
 	route.addHandler(HandlerFunc(hf))
 	route.addHandler(HandlerFunc(hf))
-	req := factory.NewRequest(httpreq, nil)
+	req := factory.NewMessage(httpreq, nil, nil)
 	req.SetRoute(route)
 	expect(t, counter, 0)
 	req.Next()
@@ -40,7 +40,7 @@ func TestRequestParams(t *testing.T) {
 	route.addSegment(&Segment{Variable: true, Value: "foo", Name: "id"})
 	route.addSegment(&Segment{Name: "cork"})
 	route.addSegment(&Segment{Variable: true, Value: "bar", Name: "temp"})
-	req := factory.NewRequest(httpreq, nil)
+	req := factory.NewMessage(httpreq, nil, nil)
 	req.SetRoute(route)
 	expect(t, len(req.Params), 2)
 	expect(t, req.Params["id"], "foo")

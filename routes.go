@@ -16,7 +16,7 @@ type HandlerWithExpression interface {
 
 type HandlerExpression interface {
 	Handle(Handler) HandlerWithExpression
-	HandleFunc(func(*Response, *Request)) HandlerWithExpression
+	HandleFunc(func(*Message)) HandlerWithExpression
 }
 
 type WithExpression interface {
@@ -63,7 +63,7 @@ func (routes *defaultRoutes) Handle(handler Handler) HandlerWithExpression {
 	return routes
 }
 
-func (routes *defaultRoutes) HandleFunc(handler func(*Response, *Request)) HandlerWithExpression {
+func (routes *defaultRoutes) HandleFunc(handler func(*Message)) HandlerWithExpression {
 	routes.addHandler(HandlerFunc(handler))
 	return routes
 }

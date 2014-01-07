@@ -1,11 +1,11 @@
 package cork
 
 type Handler interface {
-	Handle(*Response, *Request)
+	Handle(*Message)
 }
 
-type HandlerFunc func(*Response, *Request)
+type HandlerFunc func(*Message)
 
-func (h HandlerFunc) Handle(res *Response, req *Request) {
-	h(res, req)
+func (h HandlerFunc) Handle(message *Message) {
+	h(message)
 }

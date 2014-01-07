@@ -2,7 +2,6 @@ package cork
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 )
 
@@ -14,48 +13,45 @@ type Dispatcher interface {
 type defaultDispatcher struct {
 	settings *Cork
 	Router
-	RequestCreator
-	ResponseCreator
+	MessageCreator
 }
 
 func (d *defaultDispatcher) Configure(settings *Cork) {
 	d.settings = settings
 	d.Router = settings.Services.Router
-	d.RequestCreator = settings.Services.RequestCreator
-	d.ResponseCreator = settings.Services.ResponseCreator
+	d.MessageCreator = settings.Services.MessageCreator
 }
 
 func (d *defaultDispatcher) ServeHTTP(res http.ResponseWriter, req *http.Request) {
-	response, request := d.setupRequest(res, req)
-	defer d.handlePanic(response, request)
-	d.dispatch(response, request)
+	message := d.setupMessage(res, req)
+	defer d.handlePanic(message)
+	d.dispatch(message)
 }
 
-func (d *defaultDispatcher) dispatch(response *Response, request *Request) {
-	route := d.Route(request.Method, request.URL)
+func (d *defaultDispatcher) dispatch(message *Message) {
+	route := d.Route(message.Method, message.URL)
 
 	if route != nil && route.Action != nil {
-		d.setup(route, request)
+		d.setup(route, message)
 		if route.methodMatch {
-			d.runHandlers(route, request)
+			d.runHandlers(route, message)
 		} else {
 			// call 405 handler
-			response.Status(http.StatusMethodNotAllowed)
+			message.Status(http.StatusMethodNotAllowed)
 		}
 	} else {
-		response.Status(http.StatusNotFound)
+		message.Status(http.StatusNotFound)
 	}
 
 }
 
-func (d *defaultDispatcher) handlePanic(response *Response, request *Request) {
+func (d *defaultDispatcher) handlePanic(message *Message) {
 	if r := recover(); r != nil {
 		// log error
-		response.Status(http.StatusInternalServerError)
+		message.Status(http.StatusInternalServerError)
 
 		var err error
 		if s, ok := r.(string); ok {
-			fmt.Println(s)
 			err = errors.New(s)
 		} else if e, ok := r.(error); ok {
 			err = e
@@ -64,23 +60,21 @@ func (d *defaultDispatcher) handlePanic(response *Response, request *Request) {
 		}
 
 		if eh := d.settings.Error; eh != nil {
-			request.Error = NewError(err, http.StatusInternalServerError)
-			eh.Handle(response, request)
+			message.Error = NewError(err, http.StatusInternalServerError)
+			eh.Handle(message)
 		}
 	}
 }
 
-func (d *defaultDispatcher) runHandlers(route *Route, request *Request) {
-	request.Next()
+func (d *defaultDispatcher) runHandlers(route *Route, message *Message) {
+	message.Next()
 }
 
-func (d *defaultDispatcher) setupRequest(res http.ResponseWriter, req *http.Request) (*Response, *Request) {
-	response := d.NewResponse(res, d.settings)
-	request := d.NewRequest(req, response, d.settings)
-	return response, request
+func (d *defaultDispatcher) setupMessage(res http.ResponseWriter, req *http.Request) *Message {
+	return d.NewMessage(req, res, d.settings)
 }
 
-func (d *defaultDispatcher) setup(route *Route, request *Request) {
-	request.SetRoute(route)
+func (d *defaultDispatcher) setup(route *Route, message *Message) {
+	message.SetRoute(route)
 	route.addHandler(route.Action)
 }

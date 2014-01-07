@@ -21,20 +21,18 @@ func Pop() *Cork {
 }
 
 type Services struct {
-	Dispatcher      Dispatcher
-	Router          Router
-	Action          Action
-	RequestCreator  RequestCreator
-	ResponseCreator ResponseCreator
+	Dispatcher     Dispatcher
+	Router         Router
+	Action         Action
+	MessageCreator MessageCreator
 }
 
 func NewServices() *Services {
 	return &Services{
-		Dispatcher:      new(defaultDispatcher),
-		Router:          new(defaultRouter),
-		Action:          new(DefaultAction),
-		RequestCreator:  new(defaultRequestCreator),
-		ResponseCreator: new(defaultResponseCreator),
+		Dispatcher:     new(defaultDispatcher),
+		Router:         new(defaultRouter),
+		Action:         new(DefaultAction),
+		MessageCreator: new(defaultMessageCreator),
 	}
 }
 

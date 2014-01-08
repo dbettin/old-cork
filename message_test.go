@@ -15,7 +15,15 @@ func TestNewMessage(t *testing.T) {
 	refute(t, req.Request, nil)
 }
 
-func TestRequestNext(t *testing.T) {
+func TestSetRoute(t *testing.T) {
+	httpreq, _ := http.NewRequest("GET", "/foo", nil)
+	m := factory.NewMessage(httpreq, nil, nil)
+	m.SetRoute(&Route{context: "some context"})
+	refute(t, m.Route, nil)
+	refute(t, m.Context, nil)
+}
+
+func TestMessageNext(t *testing.T) {
 	httpreq, _ := http.NewRequest("GET", "/foo", nil)
 	route := &Route{}
 	var counter int
@@ -34,7 +42,7 @@ func TestRequestNext(t *testing.T) {
 	expect(t, counter, 2)
 }
 
-func TestRequestParams(t *testing.T) {
+func TestMessageParams(t *testing.T) {
 	httpreq, _ := http.NewRequest("GET", "/foo", nil)
 	route := &Route{}
 	route.addSegment(&Segment{Variable: true, Value: "foo", Name: "id"})

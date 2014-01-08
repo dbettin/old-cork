@@ -44,21 +44,20 @@ func init() {
 	dt.Configure(settings)
 }
 
+func TestPanicDispatch(t *testing.T) {
+	res := sendRequest("GET", "/panic")
+	expect(t, res.Code, 500)
+	expect(t, res.Body.String(), "")
+}
+
 func TestPanicDispatchWithErrorHandler(t *testing.T) {
 	dt.settings.Error = HandlerFunc(func(message *Message) {
-		message.Reply(message.Error.Status, &testError{message.Error.Error()})
+		message.Return(message.Error.Status, &testError{message.Error.Error()})
 	})
 
 	res := sendRequest("GET", "/panic")
 	expect(t, res.Code, 500)
 	expect(t, res.Body.String(), `{"Message":"error"}`)
-}
-
-func TestPanicDispatch(t *testing.T) {
-	dt.settings.Error = nil
-	res := sendRequest("GET", "/panic")
-	expect(t, res.Code, 500)
-	expect(t, res.Body.String(), "")
 }
 
 func Test404Dispatch(t *testing.T) {

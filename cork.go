@@ -15,6 +15,7 @@ type Cork struct {
 
 func Pop() *Cork {
 	cork := new(Cork)
+	cork.Error = HandlerFunc(ErrorHandler)
 	cork.Services = NewServices()
 
 	return cork

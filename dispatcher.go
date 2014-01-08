@@ -37,10 +37,10 @@ func (d *defaultDispatcher) dispatch(message *Message) {
 			d.runHandlers(route, message)
 		} else {
 			// call 405 handler
-			message.Status(http.StatusMethodNotAllowed)
+			message.ReturnStatus(http.StatusMethodNotAllowed)
 		}
 	} else {
-		message.Status(http.StatusNotFound)
+		message.ReturnStatus(http.StatusNotFound)
 	}
 
 }
@@ -48,7 +48,6 @@ func (d *defaultDispatcher) dispatch(message *Message) {
 func (d *defaultDispatcher) handlePanic(message *Message) {
 	if r := recover(); r != nil {
 		// log error
-		message.Status(http.StatusInternalServerError)
 
 		var err error
 		if s, ok := r.(string); ok {
@@ -58,11 +57,8 @@ func (d *defaultDispatcher) handlePanic(message *Message) {
 		} else {
 			err = errors.New("Unknown error")
 		}
-
-		if eh := d.settings.Error; eh != nil {
-			message.Error = NewError(err, http.StatusInternalServerError)
-			eh.Handle(message)
-		}
+		message.Error = NewError(err, http.StatusInternalServerError)
+		d.settings.Error.Handle(message)
 	}
 }
 

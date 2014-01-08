@@ -20,6 +20,7 @@ type Message struct {
 
 func (m *Message) SetRoute(route *Route) {
 	m.Route = route
+	m.Context = route.context
 	m.setupParams()
 }
 
@@ -57,26 +58,34 @@ type responseWriter struct {
 	http.ResponseWriter
 }
 
-func (m *Message) Status(status int) {
+func (m *Message) ReturnStatus(status int) {
 	m.Response.WriteHeader(status)
 }
 
-func (m *Message) ReplyOK(payload interface{}) {
-	m.Reply(http.StatusOK, payload)
+func (m *Message) ReturnOK(payload interface{}) {
+	m.Return(http.StatusOK, payload)
 }
 
-func (m *Message) ReplyError(status int, err error) {
-	if m.Settings.Error != nil {
+func (m *Message) ReturnServerError(err error) {
+	m.ReturnError(http.StatusInternalServerError, err)
+}
+
+func (m *Message) ReturnError(status int, err error) {
+	if me, ok := err.(*Error); ok {
+		m.Error = me
+	} else {
+		m.Error = NewError(err, status)
 	}
-
+	m.Settings.Error.Handle(m)
 }
 
-func (m *Message) Reply(status int, payload interface{}) {
+func (m *Message) Return(status int, payload interface{}) {
+	// this will move to a standard cork handler
 	result, err := json.Marshal(payload)
 	if err != nil {
-		m.ReplyError(http.StatusInternalServerError, err)
+		m.ReturnServerError(err)
 	} else {
-		m.Status(status)
+		m.Response.WriteHeader(status)
 		m.Response.Header().Set("Content-Type", "application/json")
 		m.Response.Write(result)
 	}

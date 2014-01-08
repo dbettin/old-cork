@@ -29,7 +29,7 @@ func (routes *defaultRoutes) Get(template string, action interface{}) HandlerWit
 	}
 
 	route, err := NewRoute(template, GET)
-	routes.Route = route
+	routes.currentRoute = route
 	services := routes.settings.Services
 
 	if err != nil {
@@ -40,8 +40,8 @@ func (routes *defaultRoutes) Get(template string, action interface{}) HandlerWit
 		if action == nil {
 			fmt.Printf("Failed to add route '%s' due to the following error: '%s'", template, "Invalid Action.")
 		} else {
-			routes.Action = action
-			routes.store.insert(routes.Route)
+			routes.currentRoute.Action = action
+			routes.store.insert(routes.currentRoute)
 		}
 	}
 
@@ -59,24 +59,24 @@ func (routes *defaultRoutes) Forward(prefix string, forwardedRoutes func(r Route
 }
 
 func (routes *defaultRoutes) Handle(handler Handler) HandlerWithExpression {
-	routes.addHandler(handler)
+	routes.currentRoute.addHandler(handler)
 	return routes
 }
 
 func (routes *defaultRoutes) HandleFunc(handler func(*Message)) HandlerWithExpression {
-	routes.addHandler(HandlerFunc(handler))
+	routes.currentRoute.addHandler(HandlerFunc(handler))
 	return routes
 }
 
 func (routes *defaultRoutes) WithContext(context interface{}) {
-	routes.addContext(context)
+	routes.currentRoute.addContext(context)
 }
 
 type defaultRoutes struct {
-	*Route
-	prefix   string
-	store    routeStore
-	settings *Cork
+	currentRoute *Route
+	prefix       string
+	store        routeStore
+	settings     *Cork
 }
 
 func newDefaultRoutes(settings *Cork, store routeStore) Routes {
